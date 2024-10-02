@@ -1,0 +1,31 @@
+.body{
+    background-color:#117554;
+}
+
+.logos{
+    display: flex;
+    justify-content: center;
+}
+
+#lib{
+    height: 130px;
+}
+
+#lorma{
+    height: 130px;
+}
+
+#note{
+    color:#999999;
+    font-size: 12px;
+}
+
+input,
+input::-webkit-input-placeholder {
+    font-size: 12px;
+    line-height: 4;
+}
+
+input:focus::-webkit-input-placeholder {
+    opacity: 0;
+}
