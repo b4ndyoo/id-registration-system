@@ -21,14 +21,13 @@ jQuery(document).ready(function ($) {
         $("#cancelSelection").hide();
         $("#toggleCheckboxes").show();
     });
-
     // Real-time search functionality
-    $("#advanced-search-input").on("keyup", function () {
+    $(document).on("keyup", "#advanced-search-input", function () {
         let value = $(this).val();
-
+        console.log(value);
         $.ajax({
             type: "GET",
-            url: "{{ URL::to('search') }}",
+            url: searchUrl, // Use the JavaScript variable here
             data: {
                 search: value,
             },
