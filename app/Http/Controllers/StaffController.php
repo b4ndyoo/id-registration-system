@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Student;
 use App\Models\ArchiveStudent;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
 use App\Exports\StudentsExport;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
+use ZipArchive;
+
 
 class StaffController extends Controller
 {
@@ -115,15 +117,16 @@ class StaffController extends Controller
                 ->orWhere('firstname', 'LIKE', "%{$request->search}%")
                 ->orWhere('idnumber', 'LIKE', "%{$request->search}%")
                 ->orWhere('courseyear', 'LIKE', "%{$request->search}%")
-                ->get();
+                ->orderBy('created_at', 'desc') // Sort by created_at in descending order
+            ->get();
 
             if ($students->isNotEmpty()) {
                 foreach ($students as $student) {
                     $output .= '
             <tr>
-                <td class="checkbox-column">
-                    Helllooo
-                </td>
+                 <td class="checkbox-column">
+                        <input type="checkbox" name="student_ids[]" value="{{ $student->idnumber }}">
+                    </td>
                 <td><img src="' . url($student->idpicture) . '" style="height: 96px; width: 96px; object-fit: scale-down"></td>
                 <td>' . $student->lastname . '</td>
                 <td>' . $student->firstname . '</td>
@@ -233,9 +236,10 @@ class StaffController extends Controller
         // Fetch the student to be archived using ID Number
         $student = Student::where('idnumber', $idNum)->firstOrFail();
 
+
         // Create a new ArchiveStudent entry with the student's current data
         ArchiveStudent::create([
-            'firstname' => $student->firstname, // Correct field names
+            'firstname' => $student->firstname,
             'middleinitial' => $student->middleinitial,
             'lastname' => $student->lastname,
             'idnumber' => $student->idnumber,
@@ -256,6 +260,7 @@ class StaffController extends Controller
         // Redirect back with a success message
         return redirect()->route('staff.students.tables')->with('success', 'Student archived successfully!');
     }
+
 
 
 
@@ -294,6 +299,42 @@ class StaffController extends Controller
         // Redirect back with a success message
         return redirect()->route('staff.archives.table')->with('success', 'Student restored successfully!');
     }
+
+    public function groupArchive(Request $request)
+    {
+        $studentIds = $request->input('student_ids', []);
+
+        if (empty($studentIds)) {
+            return redirect()->back()->with('error', 'No students selected for archiving.');
+        }
+
+        // Fetch all students by the selected IDs
+        $students = Student::whereIn('idnumber', $studentIds)->get();
+
+        foreach ($students as $student) {
+            ArchiveStudent::create([
+                'firstname' => $student->firstname,
+                'middleinitial' => $student->middleinitial,
+                'lastname' => $student->lastname,
+                'idnumber' => $student->idnumber,
+                'email' => $student->email,
+                'courseyear' => $student->courseyear,
+                'birthday' => $student->birthday,
+                'address' => $student->address,
+                'contactperson' => $student->contactperson,
+                'contactnumber' => $student->contactnumber,
+                'idpicture' => $student->idpicture,
+                'signature' => $student->signature,
+                'payment' => $student->payment,
+            ]);
+
+            // Delete the student from the original table
+            $student->delete();
+        }
+
+        return redirect()->route('staff.students.tables')->with('success', 'Selected students archived successfully!');
+    }
+
 
 
     public function delete($idnumber)
@@ -364,4 +405,50 @@ class StaffController extends Controller
             ]
         );
     }
+
+    public function downloadFiles(Request $request)
+    {
+        $request->validate([
+            'student_ids' => 'required|array',
+            'student_ids.*' => 'string|exists:registered_college_students,idnumber',
+        ]);
+
+        $zip = new ZipArchive();
+        $date = now()->format('Y-m-d'); // Get current date
+        $zipName = "{$date}-year.zip"; // Create zip file name
+        $zipPath = public_path("downloads/{$zipName}"); // Set zip file path
+
+        // Create a new zip file
+        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== TRUE) {
+            return response()->json(['message' => 'Could not create zip file.'], 500);
+        }
+
+        foreach ($request->student_ids as $idnumber) {
+            $student = DB::table('registered_college_students')->where('idnumber', $idnumber)->first();
+
+            if ($student) {
+                // Prepare file names
+                $idPictureName = "{$student->idnumber}-year.{$student->idpicture_extension}"; // Get the file extension
+                $signatureName = "{$student->idnumber}-sig.{$student->signature_extension}"; // Assuming you have this in your database
+
+                // Add ID picture to zip
+                $idPicturePath = public_path("images/idPictures/{$student->idpicture}");
+                if (file_exists($idPicturePath)) {
+                    $zip->addFile($idPicturePath, "idPictures/{$idPictureName}");
+                }
+
+                // Add signature to zip
+                $signaturePath = public_path("images/signatures/{$student->signature}");
+                if (file_exists($signaturePath)) {
+                    $zip->addFile($signaturePath, "signatures/{$signatureName}");
+                }
+            }
+        }
+
+        $zip->close(); // Close zip file
+
+        // Return the zip file as a download response
+        return response()->download($zipPath)->deleteFileAfterSend(true);
+    }
+    
 }

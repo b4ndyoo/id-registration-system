@@ -70,3 +70,6 @@ Route::delete('/students/delete/{idnumber}', [StaffController::class, 'delete'])
 
 // routes/web.php
 Route::get('/export-college-csv', [ExportCollege::class, 'exportCsv'])->name('export.csv');
+Route::post('/students/archive-group', [StaffController::class, 'groupArchive'])->name('students.archive.group');
+Route::post('/students/download', [StudentController::class, 'downloadFiles'])->name('students.download');
+
