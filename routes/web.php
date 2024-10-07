@@ -5,6 +5,7 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\StaffController;
+use App\Http\Controllers\StudentsTableController;
 use App\Http\Controllers\ExportCollege;
 
 Route::get('/', function () {
@@ -53,15 +54,15 @@ Route::get('/add-student', function () {
 Route::post('/staff-store-student', [StaffController::class, 'store'])->middleware('auth')->name('staff.store.student');
 
 // For Table Student - Staff
-Route::get('/students-table', [StaffController::class, 'studentsTable'])->middleware('auth')->name('staff.students.tables');
-Route::get('/students/archive/{id}', [StaffController::class, 'archive'])->middleware('auth')->name('students.archive');
-Route::get('/search', [StaffController::class, 'search'])->middleware('auth')->name('students.search');
-Route::get('/export-students', [StaffController::class, 'exportCsv'])->name('students.export');
+Route::get('/students-table', [StudentsTableController::class, 'studentsTable'])->middleware('auth')->name('staff.students.tables');
+Route::get('/students/archive/{id}', [StudentsTableController::class, 'archive'])->middleware('auth')->name('students.archive');
+Route::get('/search', [StudentsTableController::class, 'search'])->middleware('auth')->name('students.search');
+Route::get('/export-students', [StudentsTableController::class, 'exportCsv'])->name('students.export');
 
 // For Edit Student - Staff
-Route::get('/student/{id}/image', [StudentController::class, 'getImage'])->middleware('auth')->name('student.image');
-Route::get('/students/view/{idNum}', [StaffController::class, 'show'])->middleware('auth')->name('students.view');
-Route::put('/students/update/{idNum}', [StaffController::class, 'update'])->middleware('auth')->name('students.update');
+Route::get('/student/{id}/image', [StudentsTableController::class, 'getImage'])->middleware('auth')->name('student.image');
+Route::get('/students/view/{idNum}', [StudentsTableController::class, 'show'])->middleware('auth')->name('students.view');
+Route::put('/students/update/{idNum}', [StudentsTableController::class, 'update'])->middleware('auth')->name('students.update');
 
 Route::get('/archives-table', [StaffController::class, 'archiveTable'])->middleware('auth')->name('staff.archives.table');
 Route::post('/students/archive/{id}', [StaffController::class, 'archive'])->middleware('auth')->name('students.archive');
@@ -70,6 +71,5 @@ Route::delete('/students/delete/{idnumber}', [StaffController::class, 'delete'])
 
 // routes/web.php
 Route::get('/export-college-csv', [ExportCollege::class, 'exportCsv'])->name('export.csv');
-Route::post('/students/archive-group', [StaffController::class, 'groupArchive'])->name('students.archive.group');
-Route::post('/students/download', [StudentController::class, 'downloadFiles'])->name('students.download');
-
+Route::post('/students/archive-group', [StudentsTableController::class, 'groupArchive'])->name('students.archive.group');
+Route::post('/students/download', [StudentsTableController::class, 'downloadFiles'])->name('students.download');

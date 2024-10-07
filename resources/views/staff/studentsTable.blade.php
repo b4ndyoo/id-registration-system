@@ -87,7 +87,7 @@
     </style>
 
     @section('contentStudentsTable')
-        <div class="container-table" style="position: relative; height: 600px; overflow: hidden;">
+        <div class="container-table" style="position: relative; height: auto; overflow: hidden;">
             <!-- Set a fixed height -->
             <form id="archive-form" action="{{ route('students.archive.group') }}" method="POST">
                 <div class="export-btn btn-container">
@@ -119,9 +119,9 @@
                 </div>
 
                 <!-- Table with checkboxes inside the form -->
-                <div style="overflow-y: auto; height: 400px;"> <!-- Make the table scrollable -->
+                <div style="overflow-y: auto; height: 70vh;"> <!-- Make the table scrollable -->
                     <table class="table table-bordered" style="width: 100%;">
-                        <thead>
+                        <thead style="position: sticky; top:0;">
                             <tr>
                                 <th class="checkbox-column">Select All <input type="checkbox" id="select-all"
                                         style="margin-left: 4px;"></th>
